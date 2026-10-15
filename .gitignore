@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 用户数据（绝不入库：含 API key 与个人日志）
+*.log
+config.json
+config.toml
+
+# IDE / 系统
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
