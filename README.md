@@ -12,6 +12,7 @@
 - **Alt+O 截图 OCR** —— 文字选不中的场景（图片、扫描件、视频字幕）框一下就翻
 - **零依赖** —— 纯 Python 标准库（ctypes/tkinter/urllib），无第三方包，内存 ~42MB
 - **接入你自己的 AI 服务** —— 任何 OpenAI 兼容端点（vLLM/Ollama/OpenRouter/官方 API 均可）
+- **交互细节在线** —— DeepL 风深色弹窗、悬停暂停关闭、拖动跟手、📋 一键复制（✓ 反馈）、剪贴板自动还原
 
 ## 安装
 
@@ -19,12 +20,15 @@
 
 从 [Releases](../../releases) 下载 `Shanyi-win64.zip`，解压后双击 `Shanyi.exe`。无需安装 Python。
 
-**方式二：从源码运行**
+**方式二：从源码运行（uv）**
 
 ```bash
 # 要求：Windows 10/11 + Python 3.11+（需自带 tkinter）
-python main.py
+uv sync          # 创建 .venv，安装开发工具链（运行时本身零依赖）
+uv run python main.py
 ```
+
+也可以直接 `python main.py`（无需 uv）。
 
 首次运行会在 `%LOCALAPPDATA%\Shanyi\config.json` 生成默认配置，填入你的 AI 端点即可：
 
@@ -76,14 +80,21 @@ hotkeys.py   全局热键循环 + 工作线程
 tests.py     纯逻辑单测（PNG 编码/区域扩边/热键解析）
 ```
 
-单文件约 600 行，进程常驻内存 ~42MB（Python 解释器底噪），无依赖、无打包、无服务进程。
+源码约 700 行；进程常驻内存 ~42MB（Python 解释器底噪）；无服务进程。
 
-## 构建（维护者）
+## 开发
+
+```bash
+uv sync                        # 开发环境（含 pyinstaller/pyflakes）
+uv run python tests.py         # 单测
+uv run pyflakes *.py           # 静态检查
+uv run pyinstaller shanyi.spec --noconfirm   # 本地打包
+```
+
+## 发布（维护者）
 
 推送 `v*` 标签（如 `git tag v0.1.1 && git push --tags`）即触发 GitHub Actions：
-跑单测 → PyInstaller 打包 → 冒烟测试（启动并验证热键注册）→ 产物附到 Release。
-
-本地构建（可选）：`pip install pyinstaller && pyinstaller shanyi.spec --noconfirm`
+跑单测 + Lint → PyInstaller 打包 → 冒烟测试（真启动 exe 验证热键注册）→ 产物附到 Release。
 
 ## 已知限制
 
