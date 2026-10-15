@@ -11,7 +11,7 @@
 - **全局热键，处处可用** —— 浏览器、PDF、IDE、聊天窗口，只要能选中文字就能译
 - **Alt+O 截图 OCR** —— 文字选不中的场景（图片、扫描件、视频字幕）框一下就翻
 - **零依赖** —— 纯 Python 标准库（ctypes/tkinter/urllib），无第三方包，内存 ~42MB
-- **自带云配置，也兼容青简输入法** —— 已安装[青简](https://qingjian.app)的用户零配置，直接复用其云翻译设置
+- **接入你自己的 AI 服务** —— 任何 OpenAI 兼容端点（vLLM/Ollama/OpenRouter/官方 API 均可）
 
 ## 快速开始
 
@@ -35,9 +35,7 @@ python main.py
 
 翻译方向自动判断：中文选区 → 译英；英文选区 → 译中。
 
-### 青简输入法用户
-
-如果装了[青简](https://qingjian.app)并配好云联想，`config.json` 的 `cloud` 段留空即可——Shanyi 会自动读取 `APPDATA\Qingjian\config.toml` 的模型与密钥，无需二次填写。
+OCR 功能需要一个视觉模型（兼容 OpenAI `image_url` 格式，如 `deepseek-ai/DeepSeek-OCR`）；不需要 OCR 的话可以不配，`Alt+T` 划词翻译照常工作。
 
 ## 快捷键
 
@@ -76,7 +74,7 @@ tests.py     纯逻辑单测（PNG 编码/区域扩边/热键解析）
 
 ## 已知限制
 
-- 仅 Windows（TSF/剪贴板/GDI 均为 Win32 实现）
+- 仅 Windows（热键/剪贴板/GDI 均为 Win32 实现）
 - 截图 OCR 依赖服务端部署视觉模型（如 DeepSeek-OCR）
 - 终端类应用使用 `Ctrl+Shift+C` 复制，已自动识别处理
 
