@@ -4,70 +4,118 @@
 
 ![shanyi](https://img.shields.io/badge/platform-Windows%2010%2F11-blue) ![deps](https://img.shields.io/badge/dependencies-0-brightgreen) ![license](https://img.shields.io/badge/license-MIT-green)
 
-## 它解决什么问题
+## ✨ 它解决什么问题
 
 划词翻译工具很多，但大多数要么臃肿（常驻几百 MB），要么只能在特定应用里用。Shanyi 的取舍很简单：
 
 - **全局热键，处处可用** —— 浏览器、PDF、IDE、聊天窗口，只要能选中文字就能译
 - **Alt+O 截图 OCR** —— 文字选不中的场景（图片、扫描件、视频字幕）框一下就翻
-- **零依赖** —— 纯 Python 标准库（ctypes/tkinter/urllib），无第三方包，内存 ~42MB
+- **零依赖** —— 纯 Python 标准库（ctypes/tkinter/urllib），无第三方包，内存 ~45MB
 - **接入你自己的 AI 服务** —— 任何 OpenAI 兼容端点（vLLM/Ollama/OpenRouter/官方 API 均可）
 - **交互细节在线** —— DeepL 风深色弹窗、悬停暂停关闭、拖动跟手、📋 一键复制（✓ 反馈）、剪贴板自动还原
 
-## 安装
+## 💾 安装（普通用户）
 
-**方式一：下载 exe（推荐）**
+> [!TIP]
+> 全程不需要安装 Python，不需要任何运行环境。
 
-从 [Releases](../../releases) 下载 `Shanyi-win64.zip`，解压后双击 `Shanyi.exe`。无需安装 Python。
+1. 打开 [Releases 页面](../../releases/latest)
+2. 下载 **`Shanyi-win64.zip`**（注意：**不要**下 "Source code"，那是源码压缩包，不是软件）
+3. 右键解压到任意位置（比如 `D:\Shanyi\`）
+4. 进入解压出的 `Shanyi` 文件夹，**双击 `Shanyi.exe`**
+5. 屏幕右下角弹出气泡「Shanyi 已启动」，托盘区出现绿色「闪」字图标 —— 安装成功
 
-**方式二：从源码运行（uv）**
+> 💡 托盘图标可能收在任务栏右下角的 **^（显示隐藏的图标）** 里，可拖到常驻区。
+>
+> 💡 想开机自启：`Win+R` 输入 `shell:startup` 回车，把 `Shanyi.exe` 的**快捷方式**放进打开的文件夹。
+>
+> 💡 完整卸载：托盘右键退出后，删掉整个 `Shanyi` 文件夹 + `%LOCALAPPDATA%\Shanyi` 文件夹，无残留。
 
-```bash
-# 要求：Windows 10/11 + Python 3.11+（需自带 tkinter）
-uv sync          # 创建 .venv，安装开发工具链（运行时本身零依赖）
-uv run python main.py
-```
+## ⚙️ 首次配置（必做一次）
 
-也可以直接 `python main.py`（无需 uv）。
+Shanyi 本身不自带翻译引擎，它把文字发给**任意 OpenAI 兼容的接口**完成翻译。所以首次使用要告诉它你的接口在哪：
 
-首次运行会在 `%LOCALAPPDATA%\Shanyi\config.json` 生成默认配置，填入你的 AI 端点即可：
+1. 双击运行一次 Shanyi（自动生成配置文件）
+2. 打开配置文件：资源管理器地址栏粘贴 `%LOCALAPPDATA%\Shanyi` 回车，用记事本打开 `config.json`
+3. 填三项（以 OpenRouter 为例）：
 
 ```json
 {
   "cloud": {
-    "base_url": "https://your-api.example.com/v1",
-    "model": "your-chat-model",
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "google/gemini-2.0-flash-exp:free",
     "ocr_model": "deepseek-ai/DeepSeek-OCR",
-    "api_key": "sk-..."
+    "api_key": "sk-or-你的密钥",
+    "api_key_env": ""
   }
 }
 ```
 
-翻译方向自动判断：中文选区 → 译英；英文选区 → 译中。
+| 字段 | 填什么 |
+|---|---|
+| `base_url` | AI 服务地址，以 `/v1` 结尾（OpenAI 官方、OpenRouter、本地 Ollama/vLLM 都行） |
+| `model` | 对话模型名（用服务方模型列表里的名字） |
+| `api_key` | 该服务的密钥 |
+| `api_key_env` | 可选。填环境变量名（如 `MY_KEY`），密钥放环境变量而不是文件里 |
 
-OCR 功能需要一个视觉模型（兼容 OpenAI `image_url` 格式，如 `deepseek-ai/DeepSeek-OCR`）；不需要 OCR 的话可以不配，`Alt+T` 划词翻译照常工作。
+4. 保存，重启 Shanyi（托盘右键退出 → 重新双击）
 
-## 快捷键
+> [!NOTE]
+> 翻译方向自动判断：中文选区 → 译英文；英文选区 → 译中文，无需配置。
+>
+> OCR 是进阶功能：`ocr_model` 需要服务端部署了视觉模型（如 DeepSeek-OCR）。不配不影响 `Alt+T` 划词翻译。
+
+## 🎮 使用
 
 | 按键 | 功能 |
 |---|---|
-| `Alt+T` | 划词翻译（模拟复制，剪贴板自动还原） |
-| `Alt+O` | 截图 OCR 翻译（框选区域） |
-| `Ctrl+Alt+X` | 退出 |
+| `Alt+T` | **划词翻译**：选中一段文字 → 按 `Alt+T` → 弹出译文 |
+| `Alt+O` | **截图 OCR**：按 `Alt+O` → 框选屏幕区域 → 识别并翻译图中文字 |
+| `Ctrl+Alt+X` | 退出（或托盘图标右键 → 退出） |
 
-所有热键可在 `config.json` 的 `hotkey_*` 段自定义（支持 CTRL/ALT/SHIFT/WIN 组合与字母、F1-F12）。
+**弹窗交互**：
 
-## 配置项
+- 鼠标悬停弹窗 → 暂停自动关闭，从容阅读
+- 点 📋 → 复制译文（按钮变 ✓）
+- 按住弹窗拖动 → 跟手
+- 10 秒无操作自动消失
+
+**常见问题排查**：
+
+| 现象 | 原因与解决 |
+|---|---|
+| 双击 exe 没反应 | 已有实例在运行（看右下角托盘）。想重开：先托盘右键退出 |
+| 报 401 / 403 | API key 错误或过期，检查 `config.json` |
+| 报连接失败 | `base_url` 写错（要 `/v1` 结尾），或该服务不在线 |
+| Alt+T 没反应 | 个别游戏/管理员权限窗口会拦截全局热键，属系统限制；先点一下普通窗口再试 |
+| OCR 识别乱码 | 框选区太小或字太密，框大一点 |
+| 双开没反应 | 设计如此：单实例防重复，看托盘 |
+
+## 📋 全部配置项
 
 | 键 | 默认 | 说明 |
 |---|---|---|
-| `popup_seconds` | 10 | 译文弹窗自动关闭秒数（悬停暂停） |
-| `max_chars` | 2000 | 单次翻译的选区长度上限 |
+| `hotkey_translate` | ALT+T | 划词翻译热键 |
+| `hotkey_ocr` | ALT+O | 截图 OCR 热键 |
+| `hotkey_quit` | CTRL+ALT+X | 退出热键 |
+| `popup_seconds` | 10 | 弹窗自动关闭秒数（悬停暂停） |
+| `max_chars` | 2000 | 单次翻译选区长度上限 |
 | `http_timeout` | 20 | 翻译请求超时（秒） |
 | `ocr_min_side` | 64 | 框选区最小边长（过窄自动扩边） |
-| `cloud.ocr_model` | DeepSeek-OCR | 视觉模型，需兼容 OpenAI `image_url` 格式 |
 
-## 架构
+热键自定义写法（`mods` 支持 CTRL/ALT/SHIFT/WIN 任意组合，`key` 支持字母和 F1~F12）：
+
+```json
+"hotkey_translate": {"mods": ["CTRL", "SHIFT"], "key": "T"}
+```
+
+## 🔒 隐私与安全
+
+- **数据去向**：选中的文字/截图 → 你配置的 AI 端点 → 译文返回。仅此而已，无遥测、无第三方中转
+- **密钥安全**：`config.json` 只在你本机；用 `api_key_env` 可让密钥只存在于环境变量
+- **日志**：仅本地 `%LOCALAPPDATA%\Shanyi\shanyi.log`，用于排错
+
+## 🗂 架构
 
 ```
 main.py      入口：单实例互斥锁 + 装配
@@ -77,26 +125,31 @@ capture.py   剪贴板取词 + GDI 截屏 + 纯 stdlib PNG 编码
 api.py       OpenAI 兼容 API 调用（翻译 + OCR）
 ui.py        DeepL 风深色弹窗 + 全屏框选遮罩
 hotkeys.py   全局热键循环 + 工作线程
+tray.py      系统托盘（纯 ctypes Shell_NotifyIconW）
 tests.py     纯逻辑单测（PNG 编码/区域扩边/热键解析）
 ```
 
-源码约 700 行；进程常驻内存 ~42MB（Python 解释器底噪）；无服务进程。
+源码约 900 行；进程常驻内存 ~45MB（Python 解释器底噪）；无服务进程。
 
-## 开发
+## 🛠️ 开发
 
 ```bash
 uv sync                        # 开发环境（含 pyinstaller/pyflakes）
 uv run python tests.py         # 单测
-uv run pyflakes *.py           # 静态检查
+uv run pyflakes main.py config.py winapi.py capture.py api.py ui.py hotkeys.py tray.py tests.py
 uv run pyinstaller shanyi.spec --noconfirm   # 本地打包
 ```
 
-## 发布（维护者）
+## 🚀 发布（维护者）
 
-推送 `v*` 标签（如 `git tag v0.1.1 && git push --tags`）即触发 GitHub Actions：
-跑单测 + Lint → PyInstaller 打包 → 冒烟测试（真启动 exe 验证热键注册）→ 产物附到 Release。
+推送 `v*` 标签即触发 GitHub Actions：单测 + Lint → PyInstaller 打包 → 冒烟测试 → 产物附到 Release。
 
-## 已知限制
+```bash
+git tag -a v0.1.1 -m "说明这版改了啥"
+git push origin v0.1.1
+```
+
+## 📌 已知限制
 
 - 仅 Windows（热键/剪贴板/GDI 均为 Win32 实现）
 - 截图 OCR 依赖服务端部署视觉模型（如 DeepSeek-OCR）
