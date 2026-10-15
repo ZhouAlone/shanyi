@@ -13,14 +13,20 @@
 - **零依赖** —— 纯 Python 标准库（ctypes/tkinter/urllib），无第三方包，内存 ~42MB
 - **接入你自己的 AI 服务** —— 任何 OpenAI 兼容端点（vLLM/Ollama/OpenRouter/官方 API 均可）
 
-## 快速开始
+## 安装
+
+**方式一：下载 exe（推荐）**
+
+从 [Releases](../../releases) 下载 `Shanyi-win64.zip`，解压后双击 `Shanyi.exe`。无需安装 Python。
+
+**方式二：从源码运行**
 
 ```bash
 # 要求：Windows 10/11 + Python 3.11+（需自带 tkinter）
 python main.py
 ```
 
-首次运行会在 `%LOCALAPPDATA%\Shanyi\config.json` 生成默认配置，填入任意 OpenAI 兼容端点即可：
+首次运行会在 `%LOCALAPPDATA%\Shanyi\config.json` 生成默认配置，填入你的 AI 端点即可：
 
 ```json
 {
@@ -71,6 +77,13 @@ tests.py     纯逻辑单测（PNG 编码/区域扩边/热键解析）
 ```
 
 单文件约 600 行，进程常驻内存 ~42MB（Python 解释器底噪），无依赖、无打包、无服务进程。
+
+## 构建（维护者）
+
+推送 `v*` 标签（如 `git tag v0.1.1 && git push --tags`）即触发 GitHub Actions：
+跑单测 → PyInstaller 打包 → 冒烟测试（启动并验证热键注册）→ 产物附到 Release。
+
+本地构建（可选）：`pip install pyinstaller && pyinstaller shanyi.spec --noconfirm`
 
 ## 已知限制
 
