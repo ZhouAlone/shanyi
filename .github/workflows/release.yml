@@ -11,27 +11,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
           python-version: '3.12'
 
-      - name: Install PyInstaller (build-time only)
-        run: pip install pyinstaller
-
       - name: Run tests
-        run: python tests.py
+        run: uv run python tests.py
+
+      - name: Lint
+        run: uv run pyflakes *.py
 
       - name: Build
-        run: pyinstaller shanyi.spec --noconfirm
+        run: uv run pyinstaller shanyi.spec --noconfirm
 
       - name: Smoke test (app starts and registers hotkeys)
         run: |
           Start-Process -FilePath "dist\Shanyi\Shanyi.exe"
-          Start-Sleep -Seconds 5
-          $p = Get-CimInstance Win32_Process -Filter "Name='Shanyi.exe'"
+          Start-Sleep -Seconds 6
+          $p = Get-Process | Where-Object { $_.Path -like '*Shanyi*' }
           if (-not $p) { throw "Shanyi.exe failed to start" }
-          Write-Output "Shanyi.exe is running (PID $($p.ProcessId))"
-          Stop-Process -Id $p.ProcessId -Force
+          Write-Output "Shanyi.exe is running (PID $($p.Id))"
+          Stop-Process -Id $p.Id -Force
 
       - name: Zip release
         run: Compress-Archive -Path dist\Shanyi -DestinationPath Shanyi-win64.zip

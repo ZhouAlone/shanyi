@@ -9,11 +9,11 @@ a = Analysis(
     hookspath=[],
     runtime_hooks=[],
     excludes=[
-        # tkinter 保留（UI 必需），其余大块头全裁掉
-        'unittest', 'pydoc', 'doctest', 'argparse', 'xml', 'pydoc',
+        # tkinter 保留（UI 必需）；email/http.server 等被 urllib 依赖，不可裁
+        'unittest', 'pydoc', 'doctest', 'pydoc_data',
         'multiprocessing', 'concurrent', 'asyncio', 'sqlite3',
-        'email', 'http.server', 'xmlrpc', 'logging.handlers',
-        'distutils', 'setuptools', 'py_compile', 'compileall',
+        'xmlrpc', 'logging.handlers', 'distutils', 'setuptools',
+        'py_compile', 'compileall', 'lib2to3', 'curses',
     ],
     noarchive=False,
 )

@@ -1,0 +1,32 @@
+[project]
+name = "shanyi"
+version = "0.1.0"
+description = "Shanyi (闪译) — global hotkey translate + screenshot OCR translate for Windows. Pure stdlib, zero runtime dependencies."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "ZhouAlone" }]
+requires-python = ">=3.11"
+dependencies = []
+keywords = ["translate", "ocr", "hotkey", "windows", "clipboard"]
+classifiers = [
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Utilities",
+]
+
+[project.scripts]
+shanyi = "main:main"
+
+[tool.uv]
+# 运行时零依赖；uv 仅管理开发期工具链
+
+[dependency-groups]
+dev = ["pyinstaller>=6.0", "pyflakes>=3.0"]
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["main", "config", "winapi", "capture", "api", "ui", "hotkeys"]
