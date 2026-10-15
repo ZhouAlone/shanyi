@@ -19,7 +19,7 @@ jobs:
         run: uv run python tests.py
 
       - name: Lint
-        run: uv run pyflakes *.py
+        run: uv run pyflakes main.py config.py winapi.py capture.py api.py ui.py hotkeys.py tray.py tests.py
 
       - name: Build
         run: uv run pyinstaller shanyi.spec --noconfirm
