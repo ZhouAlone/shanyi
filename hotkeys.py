@@ -8,7 +8,7 @@ import threading
 
 import api
 from capture import capture_selection, capture_screen_region, mouse_pos
-from config import CONF, MSG_SELECT, MSG_SHOW, WM_HOTKEY, log
+from config import (CONF, FLAG_PATH, MSG_SELECT, MSG_SHOW, WM_HOTKEY, log)
 import winapi
 
 
@@ -73,6 +73,7 @@ def hotkey_loop(q: queue.Queue):
             threading.Thread(target=translate_worker, args=(q,), daemon=True).start()
         elif msg.message == WM_HOTKEY and msg.wParam == 2:
             log("收到退出热键，再见")
+            FLAG_PATH.write_text("user quit", encoding="utf-8")
             os._exit(0)
         elif msg.message == WM_HOTKEY and msg.wParam == 3:
             q.put((MSG_SELECT, 0, 0, "", False))

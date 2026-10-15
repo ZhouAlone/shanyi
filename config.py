@@ -10,6 +10,8 @@ DATA_DIR = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "Shanyi"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 CONF_PATH = DATA_DIR / "config.json"
 LOG_PATH = DATA_DIR / "shanyi.log"
+# 用户主动退出的标记：托盘/热键退出时写入；手动启动时清除
+FLAG_PATH = DATA_DIR / "exited.flag"
 
 # WinAPI 常量
 WM_HOTKEY = 0x0312

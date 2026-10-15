@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Shanyi · 入口：互斥锁 → 装配热键线程 + UI。"""
+"""Shanyi · 入口：互斥锁 → 装配热键线程 + UI + 托盘。"""
+import os
 import queue
 import sys
 import threading
@@ -10,9 +11,17 @@ import hotkeys
 import ui
 
 
+def _quit_app():
+    """托盘"退出"回调：终止整个进程（所有线程均为 daemon）。"""
+    log("托盘请求退出，再见")
+    os._exit(0)
+
+
 def main():
     q: queue.Queue = queue.Queue()
     threading.Thread(target=hotkeys.hotkey_loop, args=(q,), daemon=True).start()
+    import tray
+    tray.start(on_quit=_quit_app)
     ui.run_ui(q)
 
 

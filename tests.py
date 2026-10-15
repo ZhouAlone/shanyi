@@ -108,7 +108,7 @@ class TestWiring(unittest.TestCase):
 
     def test_all_modules_import(self):
         import importlib
-        for mod in ("config", "winapi", "capture", "api", "ui", "hotkeys"):
+        for mod in ("config", "winapi", "capture", "api", "ui", "hotkeys", "tray"):
             importlib.import_module(mod)
 
 
