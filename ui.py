@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """UI：译文弹窗（DeepL 深色风）+ OCR 框选遮罩 + 消息轮询。"""
+from __future__ import annotations
 import queue
 import tkinter as tk
 

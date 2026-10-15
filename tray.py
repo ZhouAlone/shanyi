@@ -5,6 +5,7 @@
 x64 注意：WPARAM/LPARAM 均为 8 字节，回调与 MSG 结构体必须按 64 位声明；
 WNDPROC 回调对象必须保全局引用，否则被 GC 后变野指针、线程静默崩溃。
 """
+from __future__ import annotations
 import ctypes
 import threading
 

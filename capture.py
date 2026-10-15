@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """取词（剪贴板法）与屏幕截图（GDI → PNG，纯标准库编码）。"""
+from __future__ import annotations
 import base64
 import ctypes
 import ctypes.wintypes as wt

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Shanyi 配置：用户配置（JSON）+ AI 云配置。"""
+from __future__ import annotations
 import json
 import os
 from pathlib import Path

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """热键注册、消息循环与工作线程。"""
+from __future__ import annotations
 import ctypes
 import ctypes.wintypes as wt
 import os

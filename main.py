@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Shanyi · 入口：互斥锁 → 装配热键线程 + UI + 托盘。"""
+from __future__ import annotations
 import os
 import queue
 import sys

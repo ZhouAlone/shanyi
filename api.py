@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Shanyi · 翻译与 OCR 的 HTTP 调用（每次读取云配置，改配置即生效）。"""
+from __future__ import annotations
 import json
 import urllib.error
 import urllib.request

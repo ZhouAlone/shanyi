@@ -5,6 +5,7 @@
 - 64 位句柄不声明 restype 会被截断成 32 位 → access violation
 - 句柄作参数不声明 argtypes → OverflowError: int too long to convert
 """
+from __future__ import annotations
 import ctypes
 import ctypes.wintypes as wt
 
