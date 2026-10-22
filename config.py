@@ -31,11 +31,13 @@ MSG_SELECT = "select"
 
 DEFAULT_CONF = {
     "hotkey_translate": {"mods": ["ALT"], "key": "T"},
+    "hotkey_explain": {"mods": ["ALT"], "key": "E"},
     "hotkey_ocr": {"mods": ["ALT"], "key": "O"},
     "hotkey_quit": {"mods": ["CTRL", "ALT"], "key": "X"},
     "popup_seconds": 10,
-    "max_chars": 2000,
-    "http_timeout": 20,
+    "max_chars": 6000,
+    "explain_max_tokens": 1000,
+    "http_timeout": 40,
     "ocr_min_side": 64,
     "cloud": {
         "base_url": "",
@@ -87,6 +89,7 @@ def _load_conf():
     CONF = conf
     _HOTKEYS = {name: _hotkey_code(spec) for name, spec in
                 (("translate", CONF["hotkey_translate"]),
+                 ("explain", CONF["hotkey_explain"]),
                  ("ocr", CONF["hotkey_ocr"]),
                  ("quit", CONF["hotkey_quit"]))}
 

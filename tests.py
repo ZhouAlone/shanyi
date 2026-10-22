@@ -67,6 +67,12 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(key, ord("T"))
         self.assertTrue(mods & config.MOD_MAP["ALT"])
 
+    def test_explain_hotkey_registered(self):
+        """Alt+E 解释热键必须有注册码（防漏注册回归）"""
+        mods, key = config.hotkey_id("explain")
+        self.assertEqual(key, ord("E"))
+        self.assertTrue(mods & config.MOD_MAP["ALT"])
+
     def test_direction_heuristic(self):
         """汉字为主→英，拉丁为主→中（api.translate 的判断逻辑）"""
         def is_en(text):

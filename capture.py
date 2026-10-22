@@ -87,18 +87,31 @@ def _wait_modifiers_released(timeout: float = 1.0) -> bool:
     return False
 
 
-def capture_selection() -> str | None:
-    """模拟复制拿到选区文本，并还原原剪贴板。"""
-    _wait_modifiers_released()
-    old = _clipboard_text()
-    seq0 = user32.GetClipboardSequenceNumber()
-    _press_copy_keys()
-    text = None
-    for _ in range(25):  # 最长约 500ms
-        time.sleep(0.02)
-        if user32.GetClipboardSequenceNumber() != seq0:
-            text = _clipboard_text()
+def capture_selection(retries: int = 1) -> str | None:
+    """模拟复制拿到选区文本，并还原原剪贴板。
+
+    连续热键场景（如先 Alt+T 后立刻 Alt+E）：手指可能仍搭在 Alt 上，
+    _wait_modifiers_released 超时后模拟的 Ctrl+C 会被污染。此时不直接放弃，
+    重试一轮取词——第二次时物理键通常已松开。
+    """
+    old: str | None = None
+    text: str | None = None
+    for attempt in range(max(1, retries + 1)):
+        _wait_modifiers_released()
+        old = _clipboard_text()
+        seq0 = user32.GetClipboardSequenceNumber()
+        _press_copy_keys()
+        text = None
+        for _ in range(25):  # 最长约 500ms
+            time.sleep(0.02)
+            if user32.GetClipboardSequenceNumber() != seq0:
+                text = _clipboard_text()
+                break
+        if text and text.strip():
             break
+        if attempt < retries:
+            log("取词失败（可能修饰键未松开），500ms 后重试")
+            time.sleep(0.5)
     if old is not None:
         _set_clipboard_text(old)
     return text

@@ -44,6 +44,31 @@ def translate(text: str) -> str:
     return _chat(base, api_key, payload, CONF["http_timeout"])
 
 
+_EXPLAIN_SYSTEM = (
+    "你是编程助手。用户在阅读技术文档或源码时遇到了不理解的文本"
+    "（可能是英文术语、参数名、代码片段或文档句子）。\n"
+    "用中文解释它的作用与使用场景：\n"
+    "- 是代码/参数名：逐部分说明含义，指出属于哪个知名库/框架（如能识别）\n"
+    "- 是文档句子：解释这句话在讲什么技术行为\n"
+    "- 简明扼要，最多 3 句话；一句话能说清就不要写三句\n"
+    "- 只输出解释本身，不要开场白和客套")
+
+
+def explain(text: str) -> str:
+    """解释模式：术语/参数/代码的中文讲解（非翻译）。"""
+    base, model, api_key = load_cloud()
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": _EXPLAIN_SYSTEM},
+            {"role": "user", "content": text},
+        ],
+        # 解释回答比翻译长；推理型模型思考也吃 token，给足余量
+        "max_tokens": CONF.get("explain_max_tokens", 1000),
+    }
+    return _chat(base, api_key, payload, CONF["http_timeout"])
+
+
 def ocr(b64png: str) -> str:
     """DeepSeek-OCR：截屏 PNG 的 base64 → 文字。"""
     base, _, api_key = load_cloud()

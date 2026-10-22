@@ -34,6 +34,30 @@ def translate_worker(q: queue.Queue):
         q.put((MSG_SHOW, x, y, f"❌ {e}", True))
 
 
+def explain_worker(q: queue.Queue):
+    """解释模式：Alt+E → 术语/参数/代码的中文讲解（非翻译）。"""
+    x, y = mouse_pos()
+    q.put((MSG_SHOW, x, y, "🧠 理解中…", False))
+    try:
+        text = capture_selection()
+        if not text or not text.strip():
+            q.put((MSG_SHOW, x, y, "⚠️ 未获取到选中文本", True))
+            return
+        text = text.strip()
+        if len(text) > CONF["max_chars"]:
+            q.put((MSG_SHOW, x, y, f"⚠️ 选区过长（>{CONF['max_chars']} 字符）", True))
+            return
+        log(f"解释 {len(text)} 字符: {text[:40]}…")
+        result = api.explain(text)
+        log(f"解释: {result[:60]}")
+        # 弹窗位置偏移一点：连续查阅时和翻译弹窗错开，不互相遮挡
+        q.put((MSG_SHOW, x + 40, y + 40,
+               "💡 " + result.replace("\\n", "\n"), True))
+    except Exception as e:
+        log(f"解释错误: {e!r}")
+        q.put((MSG_SHOW, x, y, f"❌ {e}", True))
+
+
 def ocr_worker(q: queue.Queue, sx: int, sy: int, sw: int, sh: int):
     """框选区域 → 截屏 → OCR → 翻译 → 弹窗"""
     q.put((MSG_SHOW, sx, sy, "⏳ 识别文字中…", False))
@@ -59,6 +83,7 @@ def hotkey_loop(q: queue.Queue):
     """热键注册 + 消息循环（本线程阻塞等待消息）。"""
     from config import hotkey_id, hotkey_label
     hm, hk = hotkey_id("translate")
+    em, ek = hotkey_id("explain")
     om, ok_ = hotkey_id("ocr")
     qm, qk = hotkey_id("quit")
     if not winapi.user32.RegisterHotKey(None, 1, hm, hk):
@@ -66,7 +91,8 @@ def hotkey_loop(q: queue.Queue):
         os._exit(1)
     winapi.user32.RegisterHotKey(None, 2, qm, qk)
     winapi.user32.RegisterHotKey(None, 3, om, ok_)
-    log(f"已启动：{hotkey_label()} 翻译 / Alt+O 屏幕取词 / Ctrl+Alt+X 退出")
+    winapi.user32.RegisterHotKey(None, 4, em, ek)
+    log(f"已启动：{hotkey_label()} 翻译 / Alt+E 解释 / Alt+O 屏幕取词 / Ctrl+Alt+X 退出")
 
     msg = wt.MSG()
     while winapi.user32.GetMessageW(ctypes.byref(msg), None, 0, 0) > 0:
@@ -78,3 +104,5 @@ def hotkey_loop(q: queue.Queue):
             os._exit(0)
         elif msg.message == WM_HOTKEY and msg.wParam == 3:
             q.put((MSG_SELECT, 0, 0, "", False))
+        elif msg.message == WM_HOTKEY and msg.wParam == 4:
+            threading.Thread(target=explain_worker, args=(q,), daemon=True).start()
