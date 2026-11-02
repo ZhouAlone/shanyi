@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 """UI：译文弹窗（DeepL 深色风）+ OCR 框选遮罩 + 消息轮询。"""
 from __future__ import annotations
+import math
 import queue
 import tkinter as tk
+import tkinter.font as tkfont
 
 from config import CONF, log
+
+# 超过约 16 行的译文切换为定高滚动窗口（Label 会无限撑高溢出屏幕）
+LONG_LINES = 16
 
 
 def run_ui(q: queue.Queue):
@@ -30,9 +35,32 @@ def run_ui(q: queue.Queue):
         frame = tk.Frame(pop, bg="#212121", highlightthickness=1,
                          highlightbackground="#3D3D3D")
         frame.pack(padx=1, pady=1)
-        tk.Label(frame, text=text, bg="#212121", fg="#eaeaea", justify="left",
-                 wraplength=480, font=("Microsoft YaHei UI", 10),
-                 padx=14, pady=11).pack()
+
+        # 长文检测：按真实字宽估行数（CJK/拉丁都准），超出即走滚动模式
+        f = tkfont.Font(family="Microsoft YaHei UI", size=10)
+        est_lines = sum(max(1, math.ceil(f.measure(seg) / 480))
+                        for seg in text.split("\n"))
+        long_mode = final and est_lines > LONG_LINES
+
+        if long_mode:
+            body = tk.Text(frame, bg="#212121", fg="#eaeaea", wrap="char",
+                           font=("Microsoft YaHei UI", 10), width=64,
+                           height=16, padx=14, pady=11, relief="flat", bd=0,
+                           highlightthickness=0, cursor="arrow")
+            sb = tk.Scrollbar(frame, command=body.yview, width=10)
+            body.configure(yscrollcommand=sb.set)
+            sb.pack(side="right", fill="y")
+            body.pack(side="left")
+            body.insert("1.0", text)
+            body.configure(state="disabled")
+            body.yview_moveto(0)
+            body.bind("<MouseWheel>",
+                      lambda e: body.yview_scroll(-e.delta // 120, "units"))
+        else:
+            tk.Label(frame, text=text, bg="#212121", fg="#eaeaea",
+                     justify="left", wraplength=480,
+                     font=("Microsoft YaHei UI", 10),
+                     padx=14, pady=11).pack()
         pop.update_idletasks()
         sw, sh = pop.winfo_screenwidth(), pop.winfo_screenheight()
         x = min(x + 18, sw - pop.winfo_width() - 8)

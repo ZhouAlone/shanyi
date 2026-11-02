@@ -37,6 +37,7 @@ DEFAULT_CONF = {
     "popup_seconds": 10,
     "max_chars": 6000,
     "explain_max_tokens": 1000,
+    "max_output_tokens": 8000,   # 长文翻译的输出预算上限（随输入自动伸缩）
     "http_timeout": 40,
     "ocr_min_side": 64,
     "cloud": {

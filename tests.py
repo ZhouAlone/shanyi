@@ -5,6 +5,7 @@ import unittest
 import zlib
 
 import config
+import api
 import capture
 
 
@@ -107,6 +108,33 @@ class TestExpandRegion(unittest.TestCase):
         # min_side 可配置（config: ocr_min_side）
         x, y, w, h = capture.expand_region(100, 200, 325, 26, 1920, 1080, 100)
         self.assertEqual((w, h), (325, 100))
+
+
+class TestLongTextLimits(unittest.TestCase):
+    """长文翻译：输出预算/超时随输入伸缩（曾硬编码 500 token + 40s 必超时）"""
+
+    def test_budget_scales_with_input(self):
+        # 短文保底 500
+        self.assertEqual(api._limits("hello"), (500, 40))
+        # 长文：len(text)+200，封顶 max_output_tokens
+        budget, _ = api._limits("x" * 5000)
+        self.assertEqual(budget, min(8000, 5200))
+
+    def test_timeout_stretches_for_long_text(self):
+        _, timeout_short = api._limits("hi")
+        budget, timeout_long = api._limits("x" * 5000)
+        self.assertEqual(timeout_short, 40)                  # 短文不加重试负担
+        self.assertGreater(timeout_long, timeout_short)      # 长文拉长超时
+        self.assertGreaterEqual(timeout_long, 15 + budget // 20)
+
+    def test_finish_reason_length_surfaces(self):
+        """finish_reason=length 时应能取到正文并追加截断提示（translate）"""
+        resp = {"choices": [{"message": {"content": " 译文 "},
+                             "finish_reason": "length"}]}
+        choice = resp["choices"][0]
+        content = (choice.get("message") or {}).get("content") or ""
+        self.assertEqual(content.strip(), "译文")
+        self.assertEqual(choice.get("finish_reason"), "length")
 
 
 class TestWiring(unittest.TestCase):

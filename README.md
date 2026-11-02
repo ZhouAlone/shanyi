@@ -107,6 +107,7 @@ Shanyi 本身不自带翻译引擎，它把文字发给**任意 OpenAI 兼容的
 - 点 📋 → 复制译文（按钮变 ✓）
 - 按住弹窗拖动 → 跟手
 - 10 秒无操作自动消失
+- 长译文自动切换为带滚动条的定高窗口，滚轮翻阅全文
 
 **常见问题排查**：
 
@@ -124,11 +125,14 @@ Shanyi 本身不自带翻译引擎，它把文字发给**任意 OpenAI 兼容的
 | 键 | 默认 | 说明 |
 |---|---|---|
 | `hotkey_translate` | ALT+T | 划词翻译热键 |
+| `hotkey_explain` | ALT+E | 解释代码/术语热键 |
 | `hotkey_ocr` | ALT+O | 截图 OCR 热键 |
 | `hotkey_quit` | CTRL+ALT+X | 退出热键 |
 | `popup_seconds` | 10 | 弹窗自动关闭秒数（悬停暂停） |
-| `max_chars` | 2000 | 单次翻译选区长度上限 |
-| `http_timeout` | 20 | 翻译请求超时（秒） |
+| `max_chars` | 6000 | 单次翻译选区长度上限 |
+| `max_output_tokens` | 8000 | 长文翻译输出预算上限（随输入自动伸缩，短文仍为 500） |
+| `explain_max_tokens` | 1000 | 解释模式的输出 token 上限 |
+| `http_timeout` | 40 | 翻译请求超时（秒；长文会按输出预算自动延长） |
 | `ocr_min_side` | 64 | 框选区最小边长（过窄自动扩边） |
 
 热键自定义写法（`mods` 支持 CTRL/ALT/SHIFT/WIN 任意组合，`key` 支持字母和 F1~F12）：

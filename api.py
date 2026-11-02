@@ -8,8 +8,22 @@ import urllib.request
 from config import CONF, load_cloud
 
 
-def _chat(base: str, api_key: str, payload: dict, timeout: int) -> str:
-    """POST /chat/completions；HTTP 错误带出服务端响应体（真实拒绝原因）。"""
+def _limits(text: str) -> tuple[int, int]:
+    """按输入长度伸缩 (max_tokens, timeout)。
+
+    短文维持 500 token / http_timeout 原值；长文放宽到 max_output_tokens，
+    超时按 ~20 token/s 的保守生成速度随预算拉长——否则长文 40s 必超时。
+    """
+    budget = max(500, min(CONF.get("max_output_tokens", 8000), len(text) + 200))
+    timeout = max(CONF["http_timeout"], 15 + budget // 20)
+    return budget, timeout
+
+
+def _chat(base: str, api_key: str, payload: dict, timeout: int) -> tuple[str, str | None]:
+    """POST /chat/completions；返回 (正文, finish_reason)。
+
+    HTTP 错误带出服务端响应体（真实拒绝原因）。
+    """
     # 显式空代理 = 永远直连：urllib 会在进程内缓存启动时的系统代理，
     # Clash 之类关掉后缓存的 127.0.0.1:7890 会造成 10061 假故障
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
@@ -23,7 +37,9 @@ def _chat(base: str, api_key: str, payload: dict, timeout: int) -> str:
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8", "replace")[:400]
         raise RuntimeError(f"HTTP {e.code}: {body}") from None
-    return d["choices"][0]["message"]["content"].strip()
+    choice = d["choices"][0]
+    content = (choice.get("message") or {}).get("content") or ""
+    return content.strip(), choice.get("finish_reason")
 
 
 def translate(text: str) -> str:
@@ -32,6 +48,7 @@ def translate(text: str) -> str:
     cjk = sum('\u4e00' <= c <= '\u9fff' for c in text)
     latin = sum(c.isascii() and c.isalpha() for c in text)
     target = "英语" if cjk >= latin else "中文"
+    budget, timeout = _limits(text)
     payload = {
         "model": model,
         "messages": [
@@ -39,9 +56,12 @@ def translate(text: str) -> str:
              "content": f"你是翻译引擎。把用户文本翻译为{target}，只输出译文，不要解释、不要引号。"},
             {"role": "user", "content": text},
         ],
-        "max_tokens": 500,
+        "max_tokens": budget,
     }
-    return _chat(base, api_key, payload, CONF["http_timeout"])
+    result, finish = _chat(base, api_key, payload, timeout)
+    if finish == "length":
+        result += "\n⚠️ 已达输出上限，译文可能不完整（可在配置调大 max_output_tokens）"
+    return result
 
 
 _EXPLAIN_SYSTEM = (
@@ -57,16 +77,19 @@ _EXPLAIN_SYSTEM = (
 def explain(text: str) -> str:
     """解释模式：术语/参数/代码的中文讲解（非翻译）。"""
     base, model, api_key = load_cloud()
+    # 解释回答比翻译长；推理型模型思考也吃 token，给足余量
+    budget = CONF.get("explain_max_tokens", 1000)
     payload = {
         "model": model,
         "messages": [
             {"role": "system", "content": _EXPLAIN_SYSTEM},
             {"role": "user", "content": text},
         ],
-        # 解释回答比翻译长；推理型模型思考也吃 token，给足余量
-        "max_tokens": CONF.get("explain_max_tokens", 1000),
+        "max_tokens": budget,
     }
-    return _chat(base, api_key, payload, CONF["http_timeout"])
+    result, _ = _chat(base, api_key, payload,
+                      max(CONF["http_timeout"], 15 + budget // 20))
+    return result
 
 
 def ocr(b64png: str) -> str:
@@ -86,4 +109,5 @@ def ocr(b64png: str) -> str:
         "max_tokens": 2000,
         "temperature": 0,
     }
-    return _chat(base, api_key, payload, 120)
+    result, _ = _chat(base, api_key, payload, 120)
+    return result

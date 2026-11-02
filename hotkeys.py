@@ -50,9 +50,10 @@ def explain_worker(q: queue.Queue):
         log(f"解释 {len(text)} 字符: {text[:40]}…")
         result = api.explain(text)
         log(f"解释: {result[:60]}")
-        # 弹窗位置偏移一点：连续查阅时和翻译弹窗错开，不互相遮挡
-        q.put((MSG_SHOW, x + 40, y + 40,
-               "💡 " + result.replace("\\n", "\n"), True))
+        # 弹窗位置偏移一点：连续查阅时和翻译弹窗错开，不互相遮挡。
+        # 注意别对 result 做 "\\n"→"\n" 替换：HTTP 响应已是真换行，
+        # 替换反而会把讲解里代码字面量 \n 破坏掉。
+        q.put((MSG_SHOW, x + 40, y + 40, "💡 " + result, True))
     except Exception as e:
         log(f"解释错误: {e!r}")
         q.put((MSG_SHOW, x, y, f"❌ {e}", True))
