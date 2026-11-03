@@ -137,6 +137,26 @@ class TestLongTextLimits(unittest.TestCase):
         self.assertEqual(choice.get("finish_reason"), "length")
 
 
+class TestLogResilience(unittest.TestCase):
+    """日志/标记写失败绝不能杀死程序（曾因开机瞬间日志被占用 → PermissionError → 自启即崩）"""
+
+    def test_log_never_raises(self):
+        old = config.LOG_PATH
+        config.LOG_PATH = config.DATA_DIR / "no-such-dir" / "x.log"
+        try:
+            config.log("写入必败路径也不许抛错")
+        finally:
+            config.LOG_PATH = old
+
+    def test_write_flag_never_raises(self):
+        old = config.FLAG_PATH
+        config.FLAG_PATH = config.DATA_DIR / "no-such-dir" / "x.flag"
+        try:
+            config.write_flag("t")
+        finally:
+            config.FLAG_PATH = old
+
+
 class TestWiring(unittest.TestCase):
     """装配冒烟：所有模块必须可导入（防重构漏 import 一类的低级伤）"""
 

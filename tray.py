@@ -9,7 +9,7 @@ from __future__ import annotations
 import ctypes
 import threading
 
-from config import FLAG_PATH, VERSION, log
+from config import VERSION, log, write_flag
 
 NIM_ADD, NIM_MODIFY, NIM_DELETE = 0, 1, 2
 NIF_MESSAGE, NIM_ICON, NIM_TIP, NIF_INFO = 0x01, 0x02, 0x04, 0x10
@@ -184,7 +184,7 @@ def _wndproc(hwnd, msg, wparam, lparam):
     if msg == WM_APP_TRAY:
         if lparam == WM_RBUTTONUP:
             # 用户请求退出：写标记 + 通知主程序
-            FLAG_PATH.write_text("user quit", encoding="utf-8")
+            write_flag("user quit")
             if _on_quit_cb:
                 _on_quit_cb()
             return 0

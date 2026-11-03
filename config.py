@@ -3,12 +3,16 @@
 from __future__ import annotations
 import json
 import os
+import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 # 用户数据放包外 %LOCALAPPDATA%\Shanyi，代码目录保持干净
 DATA_DIR = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "Shanyi"
-DATA_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass  # 目录建不出来也不拦启动：宁可无日志/无配置持久化也要能跑
 CONF_PATH = DATA_DIR / "config.json"
 LOG_PATH = DATA_DIR / "shanyi.log"
 # 用户主动退出的标记：托盘/热键退出时写入；手动启动时清除
@@ -55,11 +59,36 @@ CONF: dict = dict(DEFAULT_CONF)
 _HOTKEYS: dict = {}
 
 
+_log_warned = False
+
+
 def log(msg: str):
+    """写运行日志。写失败只吞掉、绝不抛错：日志只是附属品。
+
+    曾因开机瞬间 shanyi.log 被外部进程短暂锁定（PermissionError [Errno 13]）
+    把整个程序崩掉 → 开机自启失败。任何持久化写入都不值得为之崩溃。
+    """
     import datetime
+    global _log_warned
     line = f"[{datetime.datetime.now():%m-%d %H:%M:%S}] {msg}\n"
-    with LOG_PATH.open("a", encoding="utf-8") as f:
-        f.write(line)
+    try:
+        with LOG_PATH.open("a", encoding="utf-8") as f:
+            f.write(line)
+    except OSError as e:
+        if not _log_warned:  # 只提示一次，避免每次 log 刷屏
+            _log_warned = True
+            try:
+                print(f"Shanyi: 日志不可写，后续日志跳过: {e!r}", file=sys.stderr)
+            except OSError:
+                pass
+
+
+def write_flag(text: str):
+    """写用户退出标记（exited.flag）。同理：失败绝不致命。"""
+    try:
+        FLAG_PATH.write_text(text, encoding="utf-8")
+    except OSError as e:
+        log(f"退出标记写入失败: {e!r}")
 
 
 def _hotkey_code(spec: dict) -> tuple[int, int]:
@@ -85,8 +114,11 @@ def _load_conf():
         except Exception as e:
             log(f"配置解析失败，用默认: {e}")
     else:
-        CONF_PATH.write_text(json.dumps(conf, ensure_ascii=False, indent=2),
-                             encoding="utf-8")
+        try:
+            CONF_PATH.write_text(json.dumps(conf, ensure_ascii=False, indent=2),
+                                 encoding="utf-8")
+        except OSError as e:
+            log(f"默认配置写入失败（用内存配置继续）: {e!r}")
     CONF = conf
     _HOTKEYS = {name: _hotkey_code(spec) for name, spec in
                 (("translate", CONF["hotkey_translate"]),

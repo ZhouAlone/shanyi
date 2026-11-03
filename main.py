@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Shanyi · 入口：互斥锁 → 装配热键线程 + UI + 托盘。"""
 from __future__ import annotations
+import ctypes
 import os
 import queue
 import sys
@@ -35,3 +36,6 @@ if __name__ == "__main__":
         main()
     except Exception as e:
         log(f"启动失败: {e!r}")
+        # 打包成无控制台的窗口程序后 traceback 无人可见，必须弹窗告知
+        ctypes.windll.user32.MessageBoxW(None, f"{e!r}", "Shanyi 启动失败", 0x10)
+        raise
